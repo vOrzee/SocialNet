@@ -76,7 +76,7 @@ struct LoginView: View {
                 
                 HStack {
                     Button("сбросить ключ", systemImage: "server.rack") {
-                        isLoggedIn = false
+                        isKeyProvided = false
                         AuthService.shared.setApiKey(value: "")
                     }
                     .padding()
