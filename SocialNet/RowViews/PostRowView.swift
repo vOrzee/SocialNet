@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PostRowView: View {
-    let post: Post
+    @State var post: Post
     var onMenuTapped: ((Post) -> Void)? = nil
     var onLikeTapped: ((Post) -> Void)? = nil
     var onCommentTapped: ((Post) -> Void)? = nil
@@ -41,7 +41,7 @@ struct PostRowView: View {
                 Image(systemName: "ellipsis")
                     .rotationEffect(.degrees(90))
                     .onTapGesture {
-                        onMenuTapped?(post)
+                        handleMenuTapped()
                     }
 
             }
@@ -72,7 +72,7 @@ struct PostRowView: View {
                     Text("\(post.likeOwnerIds.count)")
                 }
                 .onTapGesture {
-                    onLikeTapped?(post)
+                    handleLikeTapped()
                 }
 
                 HStack {
@@ -100,5 +100,43 @@ struct PostRowView: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         .contentShape(Rectangle())
+    }
+    
+    private func handleLikeTapped() {
+        if let customAction = onLikeTapped {
+            customAction(post)
+        } else {
+            // Базовая реализация:
+            PostApiService.shared.updateLike(postId: post.id, isLike: !post.likedByMe) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let updatedPost):
+                        self.post = self.post.updateLikes(likeOwnerIds: updatedPost.likeOwnerIds, likedByMe: updatedPost.likedByMe)
+                    case .failure(let error):
+                        print("Ошибка при обновлении лайка: \(error)")
+                    }
+                }
+            }
+        }
+    }
+    
+    private func handleMenuTapped() {
+        if let customAction = onMenuTapped {
+            customAction(post)
+        } else {
+            // Базовая реализация: Удаление поста
+            print("Удаляем пост") // Пока не получилось
+            PostApiService.shared.deletePost(postId: post.id) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        print("Пост \(post.id) удалён")
+                        
+                    case .failure(let error):
+                        print("Ошибка при удалении поста: \(error)")
+                    }
+                }
+            }
+        }
     }
 }

@@ -10,7 +10,9 @@ import SwiftUI
 struct MainView: View {
     @State private var users: [User] = []
     @State private var posts: [Post] = []
+    @State private var filteredPosts: [Post] = []
     @State private var isLoading = true
+    @State private var searchText: String = ""
     @State private var selectedPost: Post?
 
     var body: some View {
@@ -20,32 +22,33 @@ struct MainView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
                 } else {
-                    AvatarScrollView(users: users)
-                    HStack {
-                        Spacer()
-                        
-                        Text("Свежее")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal)
-                        
-                        Spacer()
+                    
+                    ZStack {
+                        TextField("Поиск по имени или логину", text: $searchText)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+                            .onChange(of: searchText) { _, _ in
+                                filterPosts()
+                            }
+                        HStack{
+                            Spacer()
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.gray)
+                                .padding(8.0)
+                                .padding(.trailing)
+                        }
                     }
-                    .padding(.vertical)
-                    List(posts) { post in
-                        PostRowView(
-                            post: post) { post in
-                                print("Меню поста \(post.id)")
-                            }
-                            onLikeTapped: { post in
-                                print("Пост \(post.id) понравился")
-                            }
-                            onCommentTapped: { post in
-                                selectedPost = post // Переход к деталям поста
-                            }
-                            onBookmarkTapped: { post in
-                                print("Сохранить пост \(post.id)")
-                            }
+
+                    AvatarScrollView(users: users)
+
+                    List(filteredPosts) { post in
+                        PostRowView(post: post,
+                        onCommentTapped: { post in
+                            selectedPost = post // Переход к комментариям поста
+                        },
+                        onBookmarkTapped: { post in
+                            print("Сохранить пост \(post.id)")
+                        })
                         .listRowSeparator(.hidden)
                     }
                     .listStyle(.plain)
@@ -60,6 +63,7 @@ struct MainView: View {
                 }
             }
             .background(Color(.systemBackground))
+            .keyboardDismissToolbar()
             .onAppear {
                 loadData()
             }
@@ -67,12 +71,12 @@ struct MainView: View {
     }
     
     private func loadData() {
-        NetworkService.shared.fetchPosts { result in
+        PostApiService.shared.fetchPosts { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let loadedPosts):
                     self.posts = loadedPosts
-                    
+                    self.filteredPosts = loadedPosts
                     // Уникальные идентификаторы авторов
                     let authorIds = Array(Set(loadedPosts.map { $0.authorId }))
                     let dispatchGroup = DispatchGroup()
@@ -80,7 +84,7 @@ struct MainView: View {
                     // Загружаем данные авторов
                     authorIds.forEach { authorId in
                         dispatchGroup.enter()
-                        NetworkService.shared.fetchUser(userId: authorId) { result in
+                        UserApiService.shared.fetchUser(userId: authorId) { result in
                             DispatchQueue.main.async {
                                 switch result {
                                 case .success(let user):
@@ -95,7 +99,6 @@ struct MainView: View {
 
                     // Обработка завершения всех запросов авторов
                     dispatchGroup.notify(queue: .main) {
-                        print("Все авторы загружены: \(self.users)")
                         self.isLoading = false
                     }
                     
@@ -107,9 +110,17 @@ struct MainView: View {
         }
     }
 
-
+    private func filterPosts() {
+        if searchText.isEmpty {
+            filteredPosts = posts
+        } else {
+            let findedAuthorsIds = users.filter { user in
+                user.name.lowercased().contains(searchText.lowercased()) || user.login.lowercased().contains(searchText.lowercased())
+            }.map { $0.id }
+            filteredPosts = posts.filter {
+                findedAuthorsIds.contains($0.authorId)
+            }
+        }
+    }
 }
 
-#Preview {
-    MainView()
-}

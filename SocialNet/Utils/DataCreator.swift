@@ -10,7 +10,7 @@ import Foundation
 struct DataCreator {
     static let baseURL = URL(string: "http://94.228.125.136:8080")!
     
-    static func buildRequest(pathStringUrl: String, stringMethod: String, queryItems: [String: String] = [:]) -> URLRequest? {
+    static func buildRequest(pathStringUrl: String, stringMethod: String, queryItems: [String: String] = [:], body: [String: Any]? = nil) -> URLRequest? {
         var components = URLComponents(url: baseURL.appendingPathComponent(pathStringUrl), resolvingAgainstBaseURL: true)
         components?.queryItems = queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
 
@@ -23,6 +23,15 @@ struct DataCreator {
         request.addValue(AuthService.shared.apiKey, forHTTPHeaderField: "Api-Key")
         request.addValue(AuthService.shared.authToken, forHTTPHeaderField: "Authorization")
 
+        if let body = body {
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            } catch {
+                print("Ошибка сериализации JSON: \(error)")
+                return nil
+            }
+        }
         return request
     }
     

@@ -8,26 +8,81 @@
 import SwiftUI
 
 struct PostDetailView: View {
-    let post: Post // Пост, переданный из списка
+    let post: Post
+    @State private var commentText: String = ""
+    @State private var comments: [Comment] = []
 
     var body: some View {
         VStack {
-            PostRowView(
-                post: post,
-                onMenuTapped: nil,
-                onLikeTapped: nil,
-                onCommentTapped: nil,
-                onBookmarkTapped: nil
-            )
+            List {
+                PostRowView(
+                    post: post,
+                    onCommentTapped: nil
+                )
                 .padding(.bottom)
 
-            List(post.comments ?? []) { comment in
-                CommentRowView(comment: comment)
+                ForEach(comments) { comment in
+                    CommentRowView(comment: comment)
+                }
             }
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
+            Spacer()
+            HStack {
+                TextField("Введите комментарий", text: $commentText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.vertical, 8)
+                    .padding(.leading, 8)
+
+                Button(action: {
+                    sendComment()
+                }) {
+                    Image(systemName: "paperplane.fill")
+                        .foregroundColor(.blue)
+                        .padding()
+                }
+            }
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+            .padding()
+            
         }
-        .navigationTitle("Post Details")
+        .navigationTitle("Комментарии")
         .navigationBarTitleDisplayMode(.inline)
+        .keyboardDismissToolbar()
+        .onAppear {
+            loadComments()
+        }
+    }
+    
+    private func loadComments() {
+        CommentApiService.shared.fetchComments(forPostId: post.id) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let comments):
+                    withAnimation {
+                        self.comments = comments
+                    }
+                case .failure(let error):
+                    print("Error fetching comments: \(error)")
+                }
+            }
+        }
+    }
+    
+    private func sendComment() {
+        guard !commentText.trimmingCharacters(in: .whitespaces).isEmpty else {
+            print("Комментарий пустой")
+            return
+        }
+        CommentApiService.shared.addComment(postId: post.id, content: commentText) { result in
+            switch result {
+            case .success:
+                loadComments()
+                commentText = ""
+            case .failure(let error):
+                print("Error fetching comments: \(error)")
+            }
+        }
     }
 }
 

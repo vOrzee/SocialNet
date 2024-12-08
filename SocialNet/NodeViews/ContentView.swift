@@ -19,7 +19,7 @@ struct ContentView: View {
                     .tabItem {
                         Label("Главная", systemImage: "house")
                     }
-                Text("Профиль")
+                UserView(userId: UserDefaults.standard.integer(forKey: "currentUserId"), isLoggedIn: $isLoggedIn)
                     .tabItem {
                         Label("Профиль", systemImage: "person")
                     }

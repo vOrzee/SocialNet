@@ -9,27 +9,40 @@ import SwiftUI
 
 struct AvatarScrollView: View {
     let users: [User]
+    @State private var selectedUserId: Int? = nil
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
                 ForEach(users) { user in
-                    VStack {
-                        AsyncImage(url: URL(string: user.avatar ?? "")) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        } placeholder: {
-                            Circle()
-                                .fill(Color.gray.opacity(0.3))
+                    Button(action: {
+                        selectedUserId = user.id // Устанавливаем выбранного пользователя
+                    }) {
+                        VStack {
+                            AsyncImage(url: URL(string: user.avatar ?? "")) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                            }
+                            .frame(width: 50, height: 50)
+                            .clipShape(Circle())
+                            
+                            Text(user.name)
+                                .font(.caption)
+                                .lineLimit(2)
                         }
-                        .frame(width: 50, height: 50)
-                        .clipShape(Circle())
-
-                        Text(user.name)
-                            .font(.caption)
-                            .lineLimit(1)
                     }
+                }
+            }
+            .navigationDestination(isPresented: Binding(
+                get: { selectedUserId != nil },
+                set: { if !$0 { selectedUserId = nil } }
+            )) {
+                if let userId = selectedUserId {
+                    UserView(userId: userId, isLoggedIn: .constant(true))
                 }
             }
             .padding(.horizontal)

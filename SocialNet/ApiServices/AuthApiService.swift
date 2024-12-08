@@ -17,11 +17,19 @@ final class AuthService {
     var authToken: String {
         keychain.get("authToken") ?? ""
     }
+    var currentUserId: Int {
+        UserDefaults.standard.integer(forKey: "currentUserId")
+    }
     
     private init() {}
     
     func setApiKey(value: String) {
         keychain.set(value, forKey: "apiKey")
+    }
+    
+    func logout() {
+        keychain.set("", forKey: "authToken")
+        UserDefaults.standard.set(-1, forKey: "currentUserId")
     }
     
     func authenticate(
@@ -52,6 +60,7 @@ final class AuthService {
             do {
                 let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
                 keychain.set(authResponse.token, forKey: "authToken")
+                UserDefaults.standard.set(authResponse.id, forKey: "currentUserId")
                 completion(.success(authResponse))
             } catch {
                 completion(.failure(error))
@@ -103,6 +112,7 @@ final class AuthService {
             do {
                 let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
                 keychain.set(authResponse.token, forKey: "authToken")
+                UserDefaults.standard.set(authResponse.id, forKey: "currentUserId")
                 completion(.success(authResponse))
             } catch {
                 completion(.failure(error))
