@@ -152,6 +152,9 @@ struct UserView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                self.countPosts = posts.count
+            }
         }
     }
     
@@ -223,11 +226,8 @@ struct UserView: View {
         PostApiService.shared.addPost(content: content) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success(let newPost):
-                    self.posts.insert(newPost, at: 0)
-                    self.filteredPosts.insert(newPost, at: 0)
-                    self.countPosts += 1
-                    print("Пост добавлен: \(newPost.id)")
+                case .success:
+                    loadUser()
                 case .failure(let error):
                     print("Ошибка добавления поста: \(error)")
                 }
