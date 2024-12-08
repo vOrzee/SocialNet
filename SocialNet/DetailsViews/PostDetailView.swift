@@ -8,20 +8,20 @@
 import SwiftUI
 
 struct PostDetailView: View {
-    let post: Post
+    @State var post: Post
+    @StateObject private var commentsViewModel = CommentsViewModel()
     @State private var commentText: String = ""
-    @State private var comments: [Comment] = []
 
     var body: some View {
         VStack {
             List {
                 PostRowView(
-                    post: post,
+                    post: $post,
                     onCommentTapped: nil
                 )
                 .padding(.bottom)
 
-                ForEach(comments) { comment in
+                ForEach(commentsViewModel.comments) { comment in
                     CommentRowView(comment: comment)
                 }
             }
@@ -55,17 +55,8 @@ struct PostDetailView: View {
     }
     
     private func loadComments() {
-        CommentApiService.shared.fetchComments(forPostId: post.id) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let comments):
-                    withAnimation {
-                        self.comments = comments
-                    }
-                case .failure(let error):
-                    print("Error fetching comments: \(error)")
-                }
-            }
+        Task {
+            await commentsViewModel.loadComments(for: post.id)
         }
     }
     
@@ -74,44 +65,10 @@ struct PostDetailView: View {
             print("Комментарий пустой")
             return
         }
-        CommentApiService.shared.addComment(postId: post.id, content: commentText) { result in
-            switch result {
-            case .success:
-                loadComments()
-                commentText = ""
-            case .failure(let error):
-                print("Error fetching comments: \(error)")
-            }
+        Task {
+            await commentsViewModel.addComment(to: post.id, content: commentText)
+            commentText = ""
+            loadComments()
         }
     }
-}
-
-#Preview {
-    PostDetailView(post: Post(
-        id: 1,
-        authorId: 1,
-        author: "John Doe",
-        authorAvatar: "https://via.placeholder.com/40",
-        content: "This is a detailed view of the post.",
-        published: Date(),
-        likedByMe: false,
-        likeOwnerIds: [1, 2],
-        attachment: Attachment(
-            url: "https://via.placeholder.com/200",
-            type: "IMAGE"
-        ),
-        comments: [
-            Comment(
-                id: 1,
-                postId: 1,
-                authorId: 2,
-                author: "Alice",
-                authorAvatar: "https://via.placeholder.com/40",
-                content: "Great post!",
-                published: Date(),
-                likeOwnerIds: [],
-                likedByMe: true
-            )
-        ]
-    ))
 }

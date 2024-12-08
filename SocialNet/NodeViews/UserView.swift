@@ -9,27 +9,27 @@ import SwiftUI
 
 struct UserView: View {
     let userId: Int
-    @State var user: User? = nil
+    @ObservedObject var authViewModel: AuthViewModel
+    @StateObject var usersViewModel: UsersViewModel = UsersViewModel()
+    var postsViewModel: PostsViewModel = PostsViewModel()
     @State var isCurrentUser: Bool = false
     @State private var posts: [Post] = []
     @State private var filteredPosts: [Post] = []
     @State private var searchText: String = ""
     @State private var selectedPost: Post?
     @State private var countPosts = 0
-    @State private var isLoading = true
-    @Binding var isLoggedIn: Bool
 
     var body: some View {
         NavigationStack {
             Group {
-                if isLoading {
+                if usersViewModel.isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
                         .onAppear {
-                            isCurrentUser = AuthService.shared.currentUserId == userId
+                            isCurrentUser = authViewModel.currentUserId == userId
                             loadUser()
                         }
-                } else if let user = user {
+                } else if let user = usersViewModel.user {
                     List {
                         HStack {
                             Spacer()
@@ -114,14 +114,27 @@ struct UserView: View {
                         }
                         .listRowSeparator(.hidden)
                         
-                        ForEach(filteredPosts) { post in
+                        ForEach($filteredPosts) { post in
                             PostRowView(post: post,
-                            onCommentTapped: { post in
-                                selectedPost = post // Переход к комментариям поста
-                            },
-                            onBookmarkTapped: { post in
-                                print("Сохранить пост \(post.id)")
-                            })
+                                onMenuTapped: { post in
+                                    Task {
+                                        await postsViewModel.deletePost(postId: post.id)
+                                        filteredPosts = postsViewModel.posts
+                                    }
+                                },
+                                onLikeTapped: { post in
+                                    Task {
+                                        await postsViewModel.updateLike(post: post)
+                                        filteredPosts = postsViewModel.posts
+                                    }
+                                },
+                                onCommentTapped: { post in
+                                    selectedPost = post // Переход к комментариям поста
+                                },
+                                onBookmarkTapped: { post in
+                                    print("Сохранить пост \(post.id)")
+                                }
+                            )
                             .listRowSeparator(.hidden)
                         }
                     }
@@ -145,7 +158,7 @@ struct UserView: View {
             .toolbar {
                 if isCurrentUser {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: logout) {
+                        Button(action: {authViewModel.logout()}) {
                             Image(systemName: "rectangle.portrait.and.arrow.forward")
                         }
                     }
@@ -153,32 +166,19 @@ struct UserView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
+                
                 self.countPosts = posts.count
             }
         }
     }
     
     private func loadUser() {
-        UserApiService.shared.fetchUser(userId: userId) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let user):
-                    self.user = user
-                    PostApiService.shared.fetchAuthorPosts(authorId: user.id) { result in
-                        switch result {
-                        case .success(let posts):
-                            self.posts = posts
-                            self.filteredPosts = posts
-                            self.countPosts = posts.count
-                        case .failure(let error):
-                            print(error)
-                        }
-                    }
-                case .failure(let error):
-                    print(error)
-                }
-                isLoading = false
-            }
+        Task {
+            await usersViewModel.loadUser(userId: userId)
+            await postsViewModel.loadPosts(authorId: userId)
+            self.posts = postsViewModel.posts
+            self.filteredPosts = postsViewModel.posts
+            self.countPosts = postsViewModel.posts.count
         }
     }
     
@@ -223,34 +223,8 @@ struct UserView: View {
     }
     
     private func addPost(content: String) {
-        PostApiService.shared.addPost(content: content) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success:
-                    loadUser()
-                case .failure(let error):
-                    print("Ошибка добавления поста: \(error)")
-                }
-            }
+        Task {
+            await postsViewModel.addPost(content: content)
         }
-    }
-    
-    private func logout() {
-        AuthService.shared.logout()
-        isLoggedIn = false
-    }
-}
-
-#Preview {
-    NavigationStack {
-        UserView(
-            userId: UserDefaults.standard.integer(forKey: "isCurrentUser"), user: User(
-                id: 1,
-                login: "annaux_designer",
-                name: "Анна Мищенко",
-                avatar: "https://via.placeholder.com/80"
-            ),
-            isCurrentUser: true, isLoggedIn: .constant(true)
-        )
     }
 }

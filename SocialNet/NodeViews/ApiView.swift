@@ -10,7 +10,7 @@ import SwiftUI
 struct ApiView: View {
     
     @State var key: String = ""
-    @Binding var isKeyProvided: Bool
+    @ObservedObject var authViewModel: AuthViewModel
     
     var body: some View {
         VStack {
@@ -23,8 +23,7 @@ struct ApiView: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
             Button {
-                AuthService.shared.setApiKey(value: key)
-                isKeyProvided = true
+                authViewModel.setApiKey(value: key)
             } label: {
                 Text("Вперёд!")
             }
@@ -35,6 +34,3 @@ struct ApiView: View {
     }
 }
 
-#Preview {
-    ApiView(isKeyProvided: .constant(false))
-}

@@ -9,16 +9,17 @@ import SwiftUI
 
 struct MainView: View {
     @State private var users: [User] = []
-    @State private var posts: [Post] = []
     @State private var filteredPosts: [Post] = []
-    @State private var isLoading = true
     @State private var searchText: String = ""
     @State private var selectedPost: Post?
+    @ObservedObject var authViewModel: AuthViewModel = AuthViewModel()
+    @StateObject var postsViewModel: PostsViewModel = PostsViewModel()
+    @StateObject var usersViewModel: UsersViewModel = UsersViewModel()
 
     var body: some View {
         NavigationStack {
             VStack {
-                if isLoading {
+                if postsViewModel.isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
                 } else {
@@ -39,16 +40,29 @@ struct MainView: View {
                         }
                     }
 
-                    AvatarScrollView(users: users)
+                    AvatarScrollView(users: users, authViewModel: authViewModel)
 
-                    List(filteredPosts) { post in
+                    List($filteredPosts) { post in
                         PostRowView(post: post,
-                        onCommentTapped: { post in
-                            selectedPost = post // Переход к комментариям поста
-                        },
-                        onBookmarkTapped: { post in
-                            print("Сохранить пост \(post.id)")
-                        })
+                            onMenuTapped: { post in
+                                Task {
+                                    await postsViewModel.deletePost(postId: post.id)
+                                    filteredPosts = postsViewModel.posts
+                                }
+                            },
+                            onLikeTapped: { post in
+                                Task {
+                                    await postsViewModel.updateLike(post: post)
+                                    filteredPosts = postsViewModel.posts
+                                }
+                            },
+                            onCommentTapped: { post in
+                                selectedPost = post // Переход к комментариям поста
+                            },
+                            onBookmarkTapped: { post in
+                                print("Сохранить пост \(post.id)")
+                            }
+                        )
                         .listRowSeparator(.hidden)
                     }
                     .listStyle(.plain)
@@ -71,53 +85,22 @@ struct MainView: View {
     }
     
     private func loadData() {
-        PostApiService.shared.fetchPosts { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let loadedPosts):
-                    self.posts = loadedPosts
-                    self.filteredPosts = loadedPosts
-                    // Уникальные идентификаторы авторов
-                    let authorIds = Array(Set(loadedPosts.map { $0.authorId }))
-                    let dispatchGroup = DispatchGroup()
-
-                    // Загружаем данные авторов
-                    authorIds.forEach { authorId in
-                        dispatchGroup.enter()
-                        UserApiService.shared.fetchUser(userId: authorId) { result in
-                            DispatchQueue.main.async {
-                                switch result {
-                                case .success(let user):
-                                    self.users.append(user)
-                                case .failure(let error):
-                                    print("Ошибка загрузки автора с ID \(authorId): \(error)")
-                                }
-                                dispatchGroup.leave()
-                            }
-                        }
-                    }
-
-                    // Обработка завершения всех запросов авторов
-                    dispatchGroup.notify(queue: .main) {
-                        self.isLoading = false
-                    }
-                    
-                case .failure(let error):
-                    print("Ошибка загрузки постов: \(error)")
-                    self.isLoading = false
-                }
-            }
+        Task {
+            await postsViewModel.loadPosts()
+            let authorIds = Array(Set(postsViewModel.posts.map { $0.authorId }))
+            users = await usersViewModel.loadUsers().filter { authorIds.contains($0.id) }
+            filteredPosts = postsViewModel.posts
         }
     }
 
     private func filterPosts() {
         if searchText.isEmpty {
-            filteredPosts = posts
+            filteredPosts = postsViewModel.posts
         } else {
             let findedAuthorsIds = users.filter { user in
                 user.name.lowercased().contains(searchText.lowercased()) || user.login.lowercased().contains(searchText.lowercased())
             }.map { $0.id }
-            filteredPosts = posts.filter {
+            filteredPosts = postsViewModel.posts.filter {
                 findedAuthorsIds.contains($0.authorId)
             }
         }

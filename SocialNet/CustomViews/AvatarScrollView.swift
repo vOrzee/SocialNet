@@ -10,6 +10,7 @@ import SwiftUI
 struct AvatarScrollView: View {
     let users: [User]
     @State private var selectedUserId: Int? = nil
+    @ObservedObject var authViewModel: AuthViewModel
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -42,7 +43,7 @@ struct AvatarScrollView: View {
                 set: { if !$0 { selectedUserId = nil } }
             )) {
                 if let userId = selectedUserId {
-                    UserView(userId: userId, isLoggedIn: .constant(true))
+                    UserView(userId: userId, authViewModel: authViewModel)
                 }
             }
             .padding(.horizontal)

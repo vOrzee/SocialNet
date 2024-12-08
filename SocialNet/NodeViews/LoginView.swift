@@ -9,8 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct LoginView: View {
-    @Binding var isLoggedIn: Bool
-    @Binding var isKeyProvided: Bool
+    @ObservedObject var authViewModel: AuthViewModel
     @State private var login: String = ""
     @State private var password: String = ""
     @State private var name: String = ""
@@ -76,8 +75,7 @@ struct LoginView: View {
                 
                 HStack {
                     Button("сбросить ключ", systemImage: "server.rack") {
-                        isKeyProvided = false
-                        AuthService.shared.setApiKey(value: "")
+                        authViewModel.setApiKey(value: "")
                     }
                     .padding()
                     Spacer()
@@ -93,50 +91,21 @@ struct LoginView: View {
     private func handleAuthAction() {
         Utils.hideKeyboard()
         guard !login.isEmpty, !password.isEmpty else {
-            errorMessage = "Введите логин и пароль"
+            authViewModel.errorMessage = "Введите логин и пароль"
             return
         }
 
-        if isLoginMode {
-            // Аутентификация
-            AuthService.shared.authenticate(login: login, password: password) { result in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    switch result {
-                    case .success(let response):
-                        print("Успешный вход: \(response)")
-                        UserDefaults.standard.set(response.token, forKey: "authToken")
-                        isLoggedIn = true
-                    case .failure(let error):
-                        self.errorMessage = error.localizedDescription
-                    }
-                }
-            }
-        } else {
-            // Регистрация
-            AuthService.shared.register(
-                login: login,
-                password: password,
-                name: name,
-                avatar: selectedAvatar?.jpegData(compressionQuality: 0.8)
-            ) { result in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    switch result {
-                    case .success(let response):
-                        print("Успешная регистрация: \(response)")
-                        UserDefaults.standard.set(response.token, forKey: "authToken")
-                        isLoggedIn = true
-                    case .failure(let error):
-                        self.errorMessage = error.localizedDescription
-                    }
-                }
+        Task {
+            if isLoginMode {
+                await authViewModel.authenticate(login: login, password: password)
+            } else {
+                await authViewModel.register(
+                    login: login,
+                    password: password,
+                    name: name,
+                    avatar: selectedAvatar?.jpegData(compressionQuality: 0.8)
+                )
             }
         }
     }
-}
-
-#Preview {
-    LoginView(isLoggedIn: .constant(false), isKeyProvided: .constant(true))
-        .modelContainer(for: Item.self, inMemory: true)
 }

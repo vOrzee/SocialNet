@@ -9,17 +9,22 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var isKeyProvided: Bool = !AuthService.shared.apiKey.isEmpty
-    @State private var isLoggedIn: Bool = !AuthService.shared.authToken.isEmpty
+    @StateObject private var authViewModel = AuthViewModel()
 
     var body: some View {
-        if isLoggedIn && isKeyProvided {
+        switch authViewModel.state {
+        case .apiKeyNotProvided:
+            ApiView(authViewModel: authViewModel)
+        case .authenticated:
             TabView {
-                MainView()
+                MainView(authViewModel: authViewModel)
                     .tabItem {
                         Label("Главная", systemImage: "house")
                     }
-                UserView(userId: UserDefaults.standard.integer(forKey: "currentUserId"), isLoggedIn: $isLoggedIn)
+                UserView(
+                    userId: authViewModel.currentUserId,
+                    authViewModel: authViewModel
+                )
                     .tabItem {
                         Label("Профиль", systemImage: "person")
                     }
@@ -28,15 +33,9 @@ struct ContentView: View {
                         Label("Сохранённое", systemImage: "heart")
                     }
             }
-        } else if isKeyProvided {
-            LoginView(isLoggedIn: $isLoggedIn, isKeyProvided: $isKeyProvided)
-        } else {
-            ApiView(isKeyProvided: $isKeyProvided)
+        case .unauthenticated:
+            LoginView(authViewModel: authViewModel)
         }
     }
 }
 
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
-}
