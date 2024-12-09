@@ -19,19 +19,5 @@
     <string>Приложение требует доступ к камере для загрузки аватаров пользователей.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Приложение использует доступ к фотогалерее для загрузки изображений.</string>
-    <key>UILaunchScreen</key>
-    <dict>
-        <key>UILaunchScreenBackgroundColor</key>
-        <string>white</string>
-        <key>UILaunchScreenImages</key>
-        <array>
-            <dict>
-                <key>UILaunchImageName</key>
-                <string>AppLaunchIcon</string>
-                <key>UILaunchImageCenter</key>
-                <true/>
-            </dict>
-        </array>
-    </dict>
 </dict>
 </plist>

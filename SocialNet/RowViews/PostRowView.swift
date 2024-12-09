@@ -52,21 +52,8 @@ struct PostRowView: View {
                 Text(post.content)
                     .font(.body)
                 
-                if let attachment = post.attachment, attachment.type == "IMAGE" {
-                    HStack {
-                        Spacer()
-                        AsyncImage(url: URL(string: attachment.url)) { image in
-                            image
-                                .resizable()
-                                .scaledToFit()
-                        } placeholder: {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 200)
-                        }
-                        .frame(height: 200)
-                        Spacer()
-                    }
+                if let attachment = post.attachment {
+                    AttachmentView(attachment: attachment)
                 }
                 
                 HStack {
