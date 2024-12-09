@@ -56,6 +56,10 @@ struct PostRowView: View {
                     AttachmentView(attachment: attachment)
                 }
                 
+                if let link = post.link, let url = URL(string: link) {
+                    Link(link, destination: url)
+                }
+                
                 HStack {
                     HStack {
                         Image(systemName: post.likedByMe ? "heart.fill" : "heart")
@@ -71,6 +75,14 @@ struct PostRowView: View {
                     }
                     .onTapGesture {
                         onCommentTapped?(post)
+                    }
+                    
+                    if let coords = post.coords {
+                        Image(systemName: "location.fill")
+                            .foregroundColor(.orange)
+                            .onTapGesture {
+                                print("Координаты: \(coords.lat), \(coords.long)")
+                            }
                     }
                     
                     Spacer()

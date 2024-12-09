@@ -68,7 +68,7 @@ final class AuthViewModel: ObservableObject {
             let bodyString = "login=\(login)&pass=\(password)"
             let bodyData = bodyString.data(using: .utf8)
             
-            var request = URLRequest(url: Fetcher.baseURL.appendingPathComponent("/api/users/authentication"))
+            var request = URLRequest(url: DataCreator.baseURL.appendingPathComponent("/api/users/authentication"))
             request.httpMethod = "POST"
             request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
             request.addValue(apiKey, forHTTPHeaderField: "Api-Key")
@@ -102,7 +102,7 @@ final class AuthViewModel: ObservableObject {
             let request: URLRequest
             if let avatar = avatar {
                 let boundary = "Boundary-\(UUID().uuidString)"
-                guard var multipartRequest = Fetcher.buildRequest(
+                guard var multipartRequest = DataCreator.buildRequest(
                     pathStringUrl: "/api/users/registration",
                     stringMethod: "POST"
                 ) else {
@@ -110,7 +110,7 @@ final class AuthViewModel: ObservableObject {
                 }
 
                 multipartRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-                multipartRequest.httpBody = Fetcher.createMultipartBody(
+                multipartRequest.httpBody = DataCreator.createMultipartBody(
                     parameters: parameters,
                     fileData: avatar,
                     fileName: "avatar.jpg",
@@ -119,7 +119,7 @@ final class AuthViewModel: ObservableObject {
                 )
                 request = multipartRequest
             } else {
-                guard var formRequest = Fetcher.buildRequest(
+                guard var formRequest = DataCreator.buildRequest(
                     pathStringUrl: "/api/users/registration",
                     stringMethod: "POST"
                 ) else {

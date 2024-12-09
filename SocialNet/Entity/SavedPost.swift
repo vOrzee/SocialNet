@@ -20,6 +20,8 @@ class SavedPost: Identifiable {
     var likeOwnerIds: [Int]
     var attachment: Attachment?
     var comments: [Comment]?
+    var coords: Coordinates? = nil
+    var link: String? = nil
 
     init(
         id: Int,
@@ -31,7 +33,9 @@ class SavedPost: Identifiable {
         likedByMe: Bool,
         likeOwnerIds: [Int],
         attachment: Attachment? = nil,
-        comments: [Comment]? = nil
+        comments: [Comment]? = nil,
+        coords: Coordinates? = nil,
+        link: String? = nil
     ) {
         self.id = id
         self.authorId = authorId
@@ -43,6 +47,8 @@ class SavedPost: Identifiable {
         self.likeOwnerIds = likeOwnerIds
         self.attachment = attachment
         self.comments = comments
+        self.coords = coords
+        self.link = link
     }
 }
 

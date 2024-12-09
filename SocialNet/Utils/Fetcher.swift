@@ -75,52 +75,7 @@ struct DataCreator {
     }
 }
 
-struct Fetcher {
-    static let baseURL = URL(string: "http://94.228.125.136:8080")!
-    private static let keychain = KeychainSwift()
-
-    private static var apiKey: String {
-        keychain.get("apiKey") ?? ""
-    }
-
-    private static var authToken: String {
-        keychain.get("authToken") ?? ""
-    }
-
-    static func buildRequest(
-        pathStringUrl: String,
-        stringMethod: String,
-        queryItems: [String: String] = [:],
-        body: [String: Any]? = nil
-    ) -> URLRequest? {
-        var components = URLComponents(url: baseURL.appendingPathComponent(pathStringUrl), resolvingAgainstBaseURL: true)
-        components?.queryItems = queryItems.isEmpty ? nil : queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
-
-        guard let url = components?.url else {
-            print("Ошибка: Некорректный URL")
-            return nil
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = stringMethod
-        request.addValue(apiKey, forHTTPHeaderField: "Api-Key")
-        
-        if !authToken.isEmpty {
-            request.addValue(authToken, forHTTPHeaderField: "Authorization")
-        }
-
-        if let body = body {
-            do {
-                request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            } catch {
-                print("Ошибка сериализации JSON: \(error)")
-                return nil
-            }
-        }
-
-        return request
-    }
+//struct Fetcher {
 
 //    static func fetch<T: Decodable>(
 //        pathStringUrl: String,
@@ -205,31 +160,4 @@ struct Fetcher {
 //            throw NSError(domain: "DecodingError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Ошибка декодирования: \(error)"])
 //        }
 //    }
-
-    static func createMultipartBody(
-        parameters: [String: String],
-        fileData: Data?,
-        fileName: String,
-        mimeType: String,
-        boundary: String
-    ) -> Data {
-        var body = Data()
-
-        for (key, value) in parameters {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
-            body.append("\(value)\r\n".data(using: .utf8)!)
-        }
-
-        if let fileData = fileData {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-            body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
-            body.append(fileData)
-            body.append("\r\n".data(using: .utf8)!)
-        }
-
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        return body
-    }
-}
+//}

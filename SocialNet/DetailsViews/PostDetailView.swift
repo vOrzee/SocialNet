@@ -51,8 +51,15 @@ struct PostDetailView: View {
                     )
                     .padding(.bottom)
                     
-                    ForEach(commentsViewModel.comments) { comment in
-                        CommentRowView(comment: comment)
+                    ForEach($commentsViewModel.comments) { comment in
+                        CommentRowView(comment: comment, authViewModel: authVewModel,
+                            onTrashTapped: { comment in
+                                Task { await commentsViewModel.deleteComment(from: post.id, commentId: comment.id) }
+                            },
+                            onLikeTapped: { comment in
+                                Task{ await commentsViewModel.updateLike(postId: comment.postId, commentId: comment.id, currentLikeStatus: comment.likedByMe) }
+                            }
+                        )
                     }
                 }
                 .listStyle(.plain)

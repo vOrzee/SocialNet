@@ -34,7 +34,7 @@ final class PostsViewModel: ObservableObject {
             await withTaskGroup(of: (Int, [Comment]?).self) { group in
                 for index in loadedPosts.indices {
                     group.addTask {
-                        guard let commentRequest = Fetcher.buildRequest(
+                        guard let commentRequest = DataCreator.buildRequest(
                             pathStringUrl: "/api/posts/\(loadedPosts[index].id)/comments",
                             stringMethod: "GET"
                         ) else {

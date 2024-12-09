@@ -17,7 +17,9 @@ struct Post: Identifiable, Codable {
     let likedByMe: Bool
     let likeOwnerIds: [Int]
     let attachment: Attachment?
-    var comments: [Comment]? = [] // Добавляем комментарии
+    var comments: [Comment]? = []
+    let coords: Coordinates?
+    let link: String?
 }
 
 extension Post {
@@ -35,7 +37,9 @@ extension Post {
             likedByMe: likedByMe ?? self.likedByMe,
             likeOwnerIds: likeOwnerIds ?? self.likeOwnerIds,
             attachment: attachment,
-            comments: comments
+            comments: comments,
+            coords: coords,
+            link: link
         )
     }
     
@@ -52,7 +56,9 @@ extension Post {
             likedByMe: likedByMe,
             likeOwnerIds: likeOwnerIds,
             attachment: attachment,
-            comments: comments
+            comments: comments,
+            coords: coords,
+            link: link
         )
     }
 }

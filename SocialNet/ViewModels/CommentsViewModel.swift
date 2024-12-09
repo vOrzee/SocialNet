@@ -16,21 +16,18 @@ final class CommentsViewModel: ObservableObject {
     func loadComments(for postId: Int) async {
         isLoading = true
         do {
-            // Генерируем запрос
-            guard let request = Fetcher.buildRequest(
+            guard let request = DataCreator.buildRequest(
                 pathStringUrl: "/api/posts/\(postId)/comments",
                 stringMethod: "GET"
             ) else {
                 throw NSError(domain: "InvalidRequest", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to build request"])
             }
 
-            // Выполняем запрос
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NSError(domain: "HTTPError", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server"])
             }
 
-            // Декодируем комментарии
             let loadedComments = try JSONDecoder.withCustomDateDecoding().decode([Comment].self, from: data)
             comments = loadedComments
         } catch {
@@ -40,12 +37,11 @@ final class CommentsViewModel: ObservableObject {
     }
 
     func addComment(to postId: Int, content: String) async {
+        isLoading = true
         do {
-            // Формируем тело запроса
             let body: [String: Any] = ["content": content]
 
-            // Генерируем запрос
-            guard let request = Fetcher.buildRequest(
+            guard let request = DataCreator.buildRequest(
                 pathStringUrl: "/api/posts/\(postId)/comments",
                 stringMethod: "POST",
                 body: body
@@ -53,20 +49,71 @@ final class CommentsViewModel: ObservableObject {
                 throw NSError(domain: "InvalidRequest", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to build request"])
             }
 
-            // Выполняем запрос
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NSError(domain: "HTTPError", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server"])
             }
 
-            // Декодируем новый комментарий
             let newComment = try JSONDecoder.withCustomDateDecoding().decode(Comment.self, from: data)
             comments.append(newComment)
         } catch {
             self.error = error.localizedDescription
         }
+        isLoading = false
+    }
+    
+    func deleteComment(from postId: Int, commentId: Int) async {
+        isLoading = true
+        error = nil
+        do {
+            guard let request = DataCreator.buildRequest(
+                pathStringUrl: "/api/posts/\(postId)/comments/\(commentId)",
+                stringMethod: "DELETE"
+            ) else {
+                throw NSError(domain: "InvalidRequest", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to build request"])
+            }
+
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                throw NSError(domain: "HTTPError", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server"])
+            }
+
+            if let index = comments.firstIndex(where: { $0.id == commentId }) {
+                comments.remove(at: index)
+            }
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
     }
 
+    func updateLike(postId: Int, commentId: Int, currentLikeStatus: Bool) async {
+        isLoading = true
+        error = nil
+        do {
+            guard let request = DataCreator.buildRequest(
+                pathStringUrl: "/api/posts/\(postId)/comments/\(commentId)/likes",
+                stringMethod: currentLikeStatus ? "DELETE" : "POST"
+            ) else {
+                throw NSError(domain: "InvalidRequest", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to build request"])
+            }
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                throw NSError(domain: "HTTPError", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server"])
+            }
+            
+            let updatedComment = try JSONDecoder.withCustomDateDecoding().decode(Comment.self, from: data)
+
+            // Локально обновляем комментарий
+            if let index = comments.firstIndex(where: { $0.id == commentId }) {
+                comments[index] = updatedComment
+            }
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
+    }
 }
 
 
