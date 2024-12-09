@@ -2,16 +2,36 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>94.228.125.136</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>94.228.125.136</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Приложение использует Face ID для аутентификации и входа в систему.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Приложение требует доступ к камере для загрузки аватаров пользователей.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Приложение использует доступ к фотогалерее для загрузки изображений.</string>
+    <key>UILaunchScreen</key>
+    <dict>
+        <key>UILaunchScreenBackgroundColor</key>
+        <string>white</string>
+        <key>UILaunchScreenImages</key>
+        <array>
+            <dict>
+                <key>UILaunchImageName</key>
+                <string>AppLaunchIcon</string>
+                <key>UILaunchImageCenter</key>
+                <true/>
+            </dict>
+        </array>
+    </dict>
 </dict>
 </plist>

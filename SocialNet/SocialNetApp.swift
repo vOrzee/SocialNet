@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct SocialNetApp: App {
+    @StateObject private var appSettings = AppSettings()
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             SavedPost.self,
@@ -26,6 +27,8 @@ struct SocialNetApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(appSettings)
+                .preferredColorScheme(appSettings.isDarkMode ? .dark : .light)
         }
         .modelContainer(sharedModelContainer)
     }

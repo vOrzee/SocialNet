@@ -44,8 +44,8 @@ struct MainView: View {
                     AvatarScrollView(users: users, authViewModel: authViewModel)
 
                     List($filteredPosts) { post in
-                        PostRowView(post: post,
-                            onMenuTapped: { post in
+                        PostRowView(post: post, authViewModel: authViewModel,
+                            onTrashTapped: { post in
                                 Task {
                                     await postsViewModel.deletePost(postId: post.id)
                                     filteredPosts = postsViewModel.posts
@@ -78,7 +78,7 @@ struct MainView: View {
                         set: { if !$0 { selectedPost = nil } }
                     )) {
                         if let post = selectedPost {
-                            PostDetailView(post: post)
+                            PostDetailView(post: post, authVewModel: authViewModel)
                         }
                     }
                 }

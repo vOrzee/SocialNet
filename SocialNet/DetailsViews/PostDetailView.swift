@@ -14,14 +14,15 @@ struct PostDetailView: View {
     @State var isActive: Bool = true
     var postsViewModel: PostsViewModel = PostsViewModel()
     @Environment(\.modelContext) private var context
+    @ObservedObject var authVewModel: AuthViewModel
 
     var body: some View {
         if isActive {
             VStack {
                 List {
                     PostRowView(
-                        post: $post,
-                        onMenuTapped: { post in
+                        post: $post, authViewModel: authVewModel,
+                        onTrashTapped: { post in
                             Task {
                                 await postsViewModel.deletePost(postId: post.id)
                                 isActive = false

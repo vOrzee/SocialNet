@@ -19,6 +19,7 @@ struct UserView: View {
     @State private var selectedPost: Post?
     @State private var countPosts = 0
     @Environment(\.modelContext) private var context
+    @State private var isSettingsPresented = false
 
     var body: some View {
         NavigationStack {
@@ -57,9 +58,9 @@ struct UserView: View {
                                 
                                 if isCurrentUser {
                                     Button(action: {
-                                        print("Редактироваю")
+                                        isSettingsPresented = true
                                     }) {
-                                        Text("Редактировать")
+                                        Text("Редактировать настройки")
                                             .fontWeight(.semibold)
                                             .padding()
                                             .frame(maxWidth: .infinity)
@@ -116,8 +117,8 @@ struct UserView: View {
                         .listRowSeparator(.hidden)
                         
                         ForEach($filteredPosts) { post in
-                            PostRowView(post: post,
-                                onMenuTapped: { post in
+                            PostRowView(post: post, authViewModel: authViewModel,
+                                onTrashTapped: { post in
                                     Task {
                                         await postsViewModel.deletePost(postId: post.id)
                                         filteredPosts = postsViewModel.posts
@@ -152,7 +153,7 @@ struct UserView: View {
                         set: { if !$0 { selectedPost = nil } }
                     )) {
                         if let post = selectedPost {
-                            PostDetailView(post: post)
+                            PostDetailView(post: post, authVewModel: authViewModel)
                         }
                     }
                 } else {
@@ -172,6 +173,9 @@ struct UserView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $isSettingsPresented) {
+                SettingsView(authViewModel: authViewModel)
+            }
             .onAppear {
                 self.countPosts = posts.count
             }

@@ -10,7 +10,8 @@ import SwiftUI
 struct PostRowView: View {
     @Binding var post: Post
     @State private var isViewActive: Bool = true
-    var onMenuTapped: ((Post) -> Void)? = nil
+    @ObservedObject var authViewModel: AuthViewModel
+    var onTrashTapped: ((Post) -> Void)? = nil
     var onLikeTapped: ((Post) -> Void)? = nil
     var onCommentTapped: ((Post) -> Void)? = nil
     var onBookmarkTapped: ((Post) -> Void)? = nil
@@ -39,12 +40,12 @@ struct PostRowView: View {
                     }
                     
                     Spacer()
-                    
-                    Image(systemName: "ellipsis")
-                        .rotationEffect(.degrees(90))
-                        .onTapGesture {
-                            onMenuTapped?(post)
-                        }
+                    if(authViewModel.currentUserId == post.authorId) {
+                        Image(systemName: "trash")
+                            .onTapGesture {
+                                onTrashTapped?(post)
+                            }
+                    }
                     
                 }
                 
