@@ -104,41 +104,4 @@ struct PostRowView: View {
             .contentShape(Rectangle())
         }
     }
-    
-//    private func handleLikeTapped() {
-//        if let customAction = onLikeTapped {
-//            customAction(post)
-//        } else {
-//            // Базовая реализация:
-//            PostApiService.shared.updateLike(postId: post.id, isLike: !post.likedByMe) { result in
-//                DispatchQueue.main.async {
-//                    switch result {
-//                    case .success(let updatedPost):
-//                        self.post = self.post.updateLikes(likeOwnerIds: updatedPost.likeOwnerIds, likedByMe: updatedPost.likedByMe)
-//                    case .failure(let error):
-//                        print("Ошибка при обновлении лайка: \(error)")
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    
-//    private func handleMenuTapped() {
-//        if let customAction = onMenuTapped {
-//            customAction(post)
-//        } else {
-//            // Базовая реализация: Удаление поста
-//            PostApiService.shared.deletePost(postId: post.id) { result in
-//                DispatchQueue.main.async {
-//                    switch result {
-//                    case .success:
-//                        print("Пост \(post.id) удалён")
-//                        isViewActive = false
-//                    case .failure(let error):
-//                        print("Ошибка при удалении поста: \(error)")
-//                    }
-//                }
-//            }
-//        }
-//    }
 }

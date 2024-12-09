@@ -10,7 +10,7 @@ import SwiftUI
 struct UserView: View {
     let userId: Int
     @ObservedObject var authViewModel: AuthViewModel
-    @StateObject var usersViewModel: UsersViewModel = UsersViewModel()
+    var usersViewModel: UsersViewModel = UsersViewModel()
     var postsViewModel: PostsViewModel = PostsViewModel()
     @State var isCurrentUser: Bool = false
     @State private var posts: [Post] = []
@@ -18,6 +18,7 @@ struct UserView: View {
     @State private var searchText: String = ""
     @State private var selectedPost: Post?
     @State private var countPosts = 0
+    @Environment(\.modelContext) private var context
 
     var body: some View {
         NavigationStack {
@@ -132,7 +133,13 @@ struct UserView: View {
                                     selectedPost = post // Переход к комментариям поста
                                 },
                                 onBookmarkTapped: { post in
-                                    print("Сохранить пост \(post.id)")
+                                    context.insert(SavedPost.from(post: post))
+                                    do {
+                                        try context.save()
+                                        print("Пост сохранён")
+                                    } catch {
+                                        print("Ошибка сохранения поста: \(error.localizedDescription)")
+                                    }
                                 }
                             )
                             .listRowSeparator(.hidden)
@@ -166,7 +173,6 @@ struct UserView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                
                 self.countPosts = posts.count
             }
         }

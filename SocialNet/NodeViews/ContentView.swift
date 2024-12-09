@@ -28,7 +28,7 @@ struct ContentView: View {
                     .tabItem {
                         Label("Профиль", systemImage: "person")
                     }
-                Text("Сохранённое")
+                SavedPostsView()
                     .tabItem {
                         Label("Сохранённое", systemImage: "heart")
                     }

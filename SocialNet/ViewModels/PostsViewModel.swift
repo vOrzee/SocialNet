@@ -13,6 +13,7 @@ final class PostsViewModel: ObservableObject {
     var posts: [Post] = []
     var isLoading: Bool = false
     var error: String? = nil
+    var lastUpdatePost: Post? = nil
 
     func loadPosts(authorId: Int? = nil) async {
         isLoading = true
@@ -111,8 +112,10 @@ final class PostsViewModel: ObservableObject {
             if let index = posts.firstIndex(where: { $0.id == post.id }) {
                 posts[index] = updatedPost
             }
+            lastUpdatePost = updatedPost
         } catch {
             self.error = error.localizedDescription
+            lastUpdatePost = nil
         }
     }
 

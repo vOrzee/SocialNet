@@ -11,46 +11,76 @@ struct PostDetailView: View {
     @State var post: Post
     @StateObject private var commentsViewModel = CommentsViewModel()
     @State private var commentText: String = ""
+    @State var isActive: Bool = true
+    var postsViewModel: PostsViewModel = PostsViewModel()
+    @Environment(\.modelContext) private var context
 
     var body: some View {
-        VStack {
-            List {
-                PostRowView(
-                    post: $post,
-                    onCommentTapped: nil
-                )
-                .padding(.bottom)
-
-                ForEach(commentsViewModel.comments) { comment in
-                    CommentRowView(comment: comment)
+        if isActive {
+            VStack {
+                List {
+                    PostRowView(
+                        post: $post,
+                        onMenuTapped: { post in
+                            Task {
+                                await postsViewModel.deletePost(postId: post.id)
+                                isActive = false
+                            }
+                        },
+                        onLikeTapped: { post in
+                            Task {
+                                await postsViewModel.updateLike(post: post)
+                                guard let updatedPost = postsViewModel.lastUpdatePost else {
+                                    isActive = false
+                                    return
+                                }
+                                self.post = updatedPost
+                            }
+                        },
+                        onCommentTapped: nil,
+                        onBookmarkTapped: { post in
+                            context.insert(SavedPost.from(post: post))
+                            do {
+                                try context.save()
+                                print("Пост сохранён")
+                            } catch {
+                                print("Ошибка сохранения поста: \(error.localizedDescription)")
+                            }
+                        }
+                    )
+                    .padding(.bottom)
+                    
+                    ForEach(commentsViewModel.comments) { comment in
+                        CommentRowView(comment: comment)
+                    }
                 }
-            }
-            .listStyle(.plain)
-            Spacer()
-            HStack {
-                TextField("Введите комментарий", text: $commentText)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.vertical, 8)
-                    .padding(.leading, 8)
-
-                Button(action: {
-                    sendComment()
-                }) {
-                    Image(systemName: "paperplane.fill")
-                        .foregroundColor(.blue)
-                        .padding()
+                .listStyle(.plain)
+                Spacer()
+                HStack {
+                    TextField("Введите комментарий", text: $commentText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.vertical, 8)
+                        .padding(.leading, 8)
+                    
+                    Button(action: {
+                        sendComment()
+                    }) {
+                        Image(systemName: "paperplane.fill")
+                            .foregroundColor(.blue)
+                            .padding()
+                    }
                 }
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding()
+                
             }
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .padding()
-            
-        }
-        .navigationTitle("Комментарии")
-        .navigationBarTitleDisplayMode(.inline)
-        .keyboardDismissToolbar()
-        .onAppear {
-            loadComments()
+            .navigationTitle("Комментарии")
+            .navigationBarTitleDisplayMode(.inline)
+            .keyboardDismissToolbar()
+            .onAppear {
+                loadComments()
+            }
         }
     }
     

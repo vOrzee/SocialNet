@@ -15,6 +15,7 @@ struct MainView: View {
     @ObservedObject var authViewModel: AuthViewModel = AuthViewModel()
     @StateObject var postsViewModel: PostsViewModel = PostsViewModel()
     @StateObject var usersViewModel: UsersViewModel = UsersViewModel()
+    @Environment(\.modelContext) private var context
 
     var body: some View {
         NavigationStack {
@@ -60,7 +61,13 @@ struct MainView: View {
                                 selectedPost = post // Переход к комментариям поста
                             },
                             onBookmarkTapped: { post in
-                                print("Сохранить пост \(post.id)")
+                                context.insert(SavedPost.from(post: post))
+                                do {
+                                    try context.save()
+                                    print("Пост сохранён")
+                                } catch {
+                                    print("Ошибка сохранения поста: \(error.localizedDescription)")
+                                }
                             }
                         )
                         .listRowSeparator(.hidden)
