@@ -14,6 +14,7 @@ struct PostRowView: View {
     var onTrashTapped: ((Post) -> Void)? = nil
     var onLikeTapped: ((Post) -> Void)? = nil
     var onCommentTapped: ((Post) -> Void)? = nil
+    var onCoordsTapped: ((Coordinates) -> Void)? = nil
     var onBookmarkTapped: ((Post) -> Void)? = nil
 
     var body: some View {
@@ -53,7 +54,12 @@ struct PostRowView: View {
                     .font(.body)
                 
                 if let attachment = post.attachment {
-                    AttachmentView(attachment: attachment)
+                    HStack {
+                        Spacer()
+                        AttachmentView(attachment: attachment)
+                            .frame(maxHeight: 400)
+                        Spacer()
+                    }
                 }
                 
                 if let link = post.link, let url = URL(string: link) {
@@ -81,7 +87,7 @@ struct PostRowView: View {
                         Image(systemName: "location.fill")
                             .foregroundColor(.orange)
                             .onTapGesture {
-                                print("Координаты: \(coords.lat), \(coords.long)")
+                                onCoordsTapped?(coords)
                             }
                     }
                     

@@ -12,10 +12,13 @@ struct MainView: View {
     @State private var filteredPosts: [Post] = []
     @State private var searchText: String = ""
     @State private var selectedPost: Post?
+    @State private var onViewCreated: Bool = false
     @ObservedObject var authViewModel: AuthViewModel = AuthViewModel()
     @StateObject var postsViewModel: PostsViewModel = PostsViewModel()
     @StateObject var usersViewModel: UsersViewModel = UsersViewModel()
     @Environment(\.modelContext) private var context
+    @State private var isMapPresented = false
+    @State private var selectedCoordinates: Coordinates?
 
     var body: some View {
         NavigationStack {
@@ -60,6 +63,10 @@ struct MainView: View {
                             onCommentTapped: { post in
                                 selectedPost = post // Переход к комментариям поста
                             },
+                            onCoordsTapped: { coords in
+                                selectedCoordinates = coords
+                                isMapPresented = true
+                            },
                             onBookmarkTapped: { post in
                                 context.insert(SavedPost.from(post: post))
                                 do {
@@ -83,11 +90,21 @@ struct MainView: View {
                     }
                 }
             }
+            .onAppear {
+                if !onViewCreated {
+                    loadData()
+                    onViewCreated = true
+                }
+            }
+            .sheet(isPresented: $isMapPresented) {
+                if let coords = selectedCoordinates {
+                    MapView(coordinatePoint: coords)
+                } else {
+                    MapView()
+                }
+            }
             .background(Color(.systemBackground))
             .keyboardDismissToolbar()
-            .onAppear {
-                loadData()
-            }
         }
     }
     
