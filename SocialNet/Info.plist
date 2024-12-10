@@ -16,8 +16,29 @@
     <key>NSFaceIDUsageDescription</key>
     <string>Приложение использует Face ID для аутентификации и входа в систему.</string>
     <key>NSCameraUsageDescription</key>
-    <string>Приложение требует доступ к камере для загрузки аватаров пользователей.</string>
+    <string>Приложение требует доступ к камере для записи медиафайлов и загрузки аватаров.</string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>Приложение использует доступ к фотогалерее для загрузки изображений.</string>
+    <string>Приложение использует доступ к фотогалерее для загрузки и выбора изображений или видео.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Приложение требует доступ к микрофону для записи аудио.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Приложение использует доступ к вашему местоположению для добавления геометок к постам.</string>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>Приложение требует доступ к медиатеке для добавления музыки к постам.</string>
+<key>UIFileSharingEnabled</key>
+<true/>
+<key>LSSupportsOpeningDocumentsInPlace</key>
+<true/>
+<key>NSFileProviderUsageDescription</key>
+<string>Приложение требует доступ к файлам для загрузки аудиофайлов.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Для выбора медиафайлов приложение использует доступ к фотогалерее.</string>
+<key>NSFileProviderUsageDescription</key>
+<string>Приложение использует доступ к файловой системе для выбора аудиофайлов.</string>
+<key>UIFileSharingEnabled</key>
+<true/>
+<key>LSSupportsOpeningDocumentsInPlace</key>
+<true/>
 </dict>
 </plist>
+

@@ -11,7 +11,7 @@ struct UserView: View {
     let userId: Int
     @ObservedObject var authViewModel: AuthViewModel
     var usersViewModel: UsersViewModel = UsersViewModel()
-    var postsViewModel: PostsViewModel = PostsViewModel()
+    @StateObject var postsViewModel: PostsViewModel = PostsViewModel()
     @State var isCurrentUser: Bool = false
     @State private var posts: [Post] = []
     @State private var filteredPosts: [Post] = []
@@ -20,6 +20,7 @@ struct UserView: View {
     @State private var countPosts = 0
     @Environment(\.modelContext) private var context
     @State private var isSettingsPresented = false
+    @State private var showAddPostView = false
 
     var body: some View {
         NavigationStack {
@@ -176,6 +177,9 @@ struct UserView: View {
             .sheet(isPresented: $isSettingsPresented) {
                 SettingsView(authViewModel: authViewModel)
             }
+            .sheet(isPresented: $showAddPostView) {
+                AddPostView(postsViewModel: postsViewModel)
+            }
             .onAppear {
                 self.countPosts = posts.count
             }
@@ -204,37 +208,32 @@ struct UserView: View {
     
     // TODO Временное решение, для тестирования функционала, заменю на View
     private func showAddPostAlert() {
-        let alertController = UIAlertController(
-            title: "Новый пост",
-            message: "Введите текст для нового поста",
-            preferredStyle: .alert
-        )
-        
-        alertController.addTextField { textField in
-            textField.placeholder = "Текст поста"
-        }
-        
-        let addAction = UIAlertAction(title: "Добавить", style: .default) { _ in
-            guard let content = alertController.textFields?.first?.text, !content.isEmpty else {
-                print("Пост пустой")
-                return
-            }
-            addPost(content: content)
-        }
-        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel)
-        
-        alertController.addAction(addAction)
-        alertController.addAction(cancelAction)
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            rootVC.present(alertController, animated: true)
-        }
-    }
-    
-    private func addPost(content: String) {
-        Task {
-            await postsViewModel.addPost(content: content)
-        }
+        showAddPostView = true
+//        let alertController = UIAlertController(
+//            title: "Новый пост",
+//            message: "Введите текст для нового поста",
+//            preferredStyle: .alert
+//        )
+//        
+//        alertController.addTextField { textField in
+//            textField.placeholder = "Текст поста"
+//        }
+//        
+//        let addAction = UIAlertAction(title: "Добавить", style: .default) { _ in
+//            guard let content = alertController.textFields?.first?.text, !content.isEmpty else {
+//                print("Пост пустой")
+//                return
+//            }
+//            addPost(content: content)
+//        }
+//        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel)
+//        
+//        alertController.addAction(addAction)
+//        alertController.addAction(cancelAction)
+//        
+//        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+//           let rootVC = windowScene.windows.first?.rootViewController {
+//            rootVC.present(alertController, animated: true)
+//        }
     }
 }

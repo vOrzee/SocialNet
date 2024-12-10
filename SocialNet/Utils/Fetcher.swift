@@ -73,6 +73,31 @@ struct DataCreator {
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         return body
     }
+    
+    static func createUploadRequest(fileData: Data, fileName: String, boundary: String) -> URLRequest? {
+        let url = URL(string: "http://94.228.125.136:8080/api/media")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        // Заголовки
+        request.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.addValue(apiKey, forHTTPHeaderField: "Api-Key")
+        if !authToken.isEmpty {
+            request.addValue(authToken, forHTTPHeaderField: "Authorization")
+        }
+
+        // Тело запроса
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        body.append(fileData)
+        body.append("\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+        request.httpBody = body
+        return request
+    }
 }
 
 //struct Fetcher {

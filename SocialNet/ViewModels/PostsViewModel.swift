@@ -69,9 +69,36 @@ final class PostsViewModel: ObservableObject {
         isLoading = false
     }
 
-    func addPost(content: String) async {
+    func addPost(post: Post) async {
         do {
-            let body: [String: Any] = ["content": content]
+            // Формируем тело запроса
+            var body: [String: Any] = [
+                "id": 0,
+                "authorId": post.authorId,
+                "author": post.author,
+                "authorAvatar": post.authorAvatar ?? "",
+                "content": post.content,
+                "published": ISO8601DateFormatter().string(from: post.published),
+                "link": post.link ?? ""
+            ]
+            
+            // Добавляем координаты, если есть
+            if let coords = post.coords {
+                body["coords"] = [
+                    "lat": coords.lat,
+                    "long": coords.long
+                ]
+            }
+            
+            // Добавляем вложение, если есть
+            if let attachment = post.attachment {
+                body["attachment"] = [
+                    "url": attachment.url,
+                    "type": attachment.type
+                ]
+            }
+            
+            // Создаём запрос
             guard let request = DataCreator.buildRequest(
                 pathStringUrl: "/api/posts",
                 stringMethod: "POST",
@@ -79,16 +106,18 @@ final class PostsViewModel: ObservableObject {
             ) else {
                 throw NSError(domain: "InvalidRequest", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to build request"])
             }
-
+            
+            // Выполняем запрос
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NSError(domain: "HTTPError", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server"])
             }
-
+            
+            // Декодируем ответ
             let newPost = try JSONDecoder.withCustomDateDecoding().decode(Post.self, from: data)
             posts.insert(newPost, at: 0)
         } catch {
-            self.error = error.localizedDescription
+            self.error = "Ошибка создания поста: \(error.localizedDescription)"
         }
     }
 
@@ -136,6 +165,29 @@ final class PostsViewModel: ObservableObject {
             posts.removeAll { $0.id == postId }
         } catch {
             self.error = error.localizedDescription
+        }
+    }
+    
+    func upload(_ fileData: Data, fileName: String = "file") async -> String? {
+        let boundary = "Boundary-\(UUID().uuidString)"
+        guard let request = DataCreator.createUploadRequest(fileData: fileData, fileName: fileName, boundary: boundary) else {
+            self.error = "Ошибка создания запроса"
+            return nil
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                throw NSError(domain: "HTTPError", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: [NSLocalizedDescriptionKey: "Ошибка ответа сервера"])
+            }
+
+            let decoder = JSONDecoder()
+            let uploadResponse = try decoder.decode(MediaResponse.self, from: data)
+            return uploadResponse.url
+        } catch {
+            self.error = "Ошибка загрузки файла: \(error.localizedDescription)"
+            return nil
         }
     }
 }

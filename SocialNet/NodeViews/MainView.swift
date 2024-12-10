@@ -65,7 +65,6 @@ struct MainView: View {
                             },
                             onCoordsTapped: { coords in
                                 selectedCoordinates = coords
-                                isMapPresented = true
                             },
                             onBookmarkTapped: { post in
                                 context.insert(SavedPost.from(post: post))
@@ -88,19 +87,21 @@ struct MainView: View {
                             PostDetailView(post: post, authVewModel: authViewModel)
                         }
                     }
+                    .refreshable {
+                        loadData()
+                    }
                 }
+            }
+            .onChange(of: selectedCoordinates, { oldValue, newValue in
+                isMapPresented = true
+            })
+            .sheet(isPresented: $isMapPresented) {
+                MapView(coordinatePoint: selectedCoordinates, .constant(nil))
             }
             .onAppear {
                 if !onViewCreated {
                     loadData()
                     onViewCreated = true
-                }
-            }
-            .sheet(isPresented: $isMapPresented) {
-                if let coords = selectedCoordinates {
-                    MapView(coordinatePoint: coords)
-                } else {
-                    MapView()
                 }
             }
             .background(Color(.systemBackground))
