@@ -27,37 +27,6 @@
 4. **Темы интерфейса** — выбирайте светлый или тёмный режим.
 5. **Face ID** — вход с использованием биометрической аутентификации.
 
-## Установка
-1. Скачайте проект и откройте его в Xcode.
-2. Убедитесь, что подключены зависимости **SwiftData** и **Face ID**.
-3. Убедитесь, что добавлены соответствующие разрешения в Info.plist:
-
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSExceptionDomains</key>
-        <dict>
-            <key>94.228.125.136</key>
-            <dict>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <true/>
-            </dict>
-        </dict>
-    </dict>
-    <key>NSFaceIDUsageDescription</key>
-    <string>Приложение использует Face ID для аутентификации и входа в систему.</string>
-    <key>NSCameraUsageDescription</key>
-    <string>Приложение требует доступ к камере для загрузки аватаров пользователей.</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>Приложение использует доступ к фотогалерее для загрузки изображений.</string>
-</dict>
-</plist>
-```
-
 ---
 
 ## Структура проекта
