@@ -19,8 +19,9 @@ final class PostsViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            let path = authorId == nil ? "/api/posts" : "/api/\(authorId!)/wall"
-            guard let request = DataCreator.buildRequest(pathStringUrl: path, stringMethod: "GET") else {
+            let path = authorId == nil ? "/api/posts/latest" : "/api/\(authorId!)/wall"
+            let queryItems: [String: String] = authorId == nil ? ["count": "30"] : [:]
+            guard let request = DataCreator.buildRequest(pathStringUrl: path, stringMethod: "GET", queryItems: queryItems) else {
                 throw NSError(domain: "InvalidRequest", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to build request"])
             }
 
@@ -68,12 +69,66 @@ final class PostsViewModel: ObservableObject {
         }
         isLoading = false
     }
+    
+    func getBefore(postId: Int) async {
+        isLoading = true
+        error = nil
+        do {
+            let path = "/api/posts/\(postId)/before"
+            guard let request = DataCreator.buildRequest(pathStringUrl: path, stringMethod: "GET", queryItems: ["count": "30"]) else {
+                throw NSError(domain: "InvalidRequest", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to build request"])
+            }
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                throw NSError(domain: "HTTPError", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response from server"])
+            }
+
+            var loadedPosts = try JSONDecoder.withCustomDateDecoding().decode([Post].self, from: data)
+
+            await withTaskGroup(of: (Int, [Comment]?).self) { group in
+                for index in loadedPosts.indices {
+                    group.addTask {
+                        guard let commentRequest = DataCreator.buildRequest(
+                            pathStringUrl: "/api/posts/\(loadedPosts[index].id)/comments",
+                            stringMethod: "GET"
+                        ) else {
+                            return (index, nil)
+                        }
+
+                        do {
+                            let (commentData, commentResponse) = try await URLSession.shared.data(for: commentRequest)
+                            guard let httpCommentResponse = commentResponse as? HTTPURLResponse, (200...299).contains(httpCommentResponse.statusCode) else {
+                                return (index, nil)
+                            }
+
+                            let comments = try JSONDecoder.withCustomDateDecoding().decode([Comment].self, from: commentData)
+                            return (index, comments)
+                        } catch {
+                            return (index, nil)
+                        }
+                    }
+                }
+
+                for await (index, comments) in group {
+                    if let comments = comments {
+                        loadedPosts[index] = loadedPosts[index].addComments(comments: comments)
+                    }
+                }
+            }
+
+            posts.append(contentsOf: loadedPosts)
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
+    }
 
     func addPost(post: Post) async {
         do {
             // Формируем тело запроса
             var body: [String: Any] = [
-                "id": 0,
+                "id": post.id,
                 "authorId": post.authorId,
                 "author": post.author,
                 "authorAvatar": post.authorAvatar ?? "",
@@ -115,7 +170,17 @@ final class PostsViewModel: ObservableObject {
             
             // Декодируем ответ
             let newPost = try JSONDecoder.withCustomDateDecoding().decode(Post.self, from: data)
-            posts.insert(newPost, at: 0)
+            if post.id == 0 {
+                posts.insert(newPost, at: 0)
+            } else {
+                posts = posts.map { it in
+                    if it.id == post.id {
+                        newPost
+                    } else {
+                        it
+                    }
+                }
+            }
         } catch {
             self.error = "Ошибка создания поста: \(error.localizedDescription)"
         }

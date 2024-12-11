@@ -13,7 +13,6 @@ struct UserView: View {
     var usersViewModel: UsersViewModel = UsersViewModel()
     @StateObject var postsViewModel: PostsViewModel = PostsViewModel()
     @State var isCurrentUser: Bool = false
-    @State private var posts: [Post] = []
     @State private var filteredPosts: [Post] = []
     @State private var searchText: String = ""
     @State private var selectedPost: Post?
@@ -21,6 +20,9 @@ struct UserView: View {
     @Environment(\.modelContext) private var context
     @State private var isSettingsPresented = false
     @State private var showAddPostView = false
+    @State private var editedPost: Post?
+    @State private var isMapPresented = false
+    @State private var selectedCoordinates: Coordinates?
 
     var body: some View {
         NavigationStack {
@@ -77,7 +79,7 @@ struct UserView: View {
                         HStack {
                             Spacer()
                             VStack {
-                                Text("\(countPosts)")
+                                Text("\(postsViewModel.posts.count)")
                                     .font(.headline)
                                 Text("публикаций")
                                     .font(.caption)
@@ -119,30 +121,36 @@ struct UserView: View {
                         
                         ForEach($filteredPosts) { post in
                             PostRowView(post: post, authViewModel: authViewModel,
-                                onTrashTapped: { post in
-                                    Task {
-                                        await postsViewModel.deletePost(postId: post.id)
-                                        filteredPosts = postsViewModel.posts
+                                    onEditTapped: { post in
+                                        editedPost = post
+                                    },
+                                    onTrashTapped: { post in
+                                        Task {
+                                            await postsViewModel.deletePost(postId: post.id)
+                                            filteredPosts = postsViewModel.posts
+                                        }
+                                    },
+                                    onLikeTapped: { post in
+                                        Task {
+                                            await postsViewModel.updateLike(post: post)
+                                            filteredPosts = postsViewModel.posts
+                                        }
+                                    },
+                                    onCommentTapped: { post in
+                                        selectedPost = post
+                                    },
+                                    onCoordsTapped: { coords in
+                                        selectedCoordinates = coords
+                                    },
+                                    onBookmarkTapped: { post in
+                                        context.insert(SavedPost.from(post: post))
+                                        do {
+                                            try context.save()
+                                            print("Пост сохранён")
+                                        } catch {
+                                            print("Ошибка сохранения поста: \(error.localizedDescription)")
+                                        }
                                     }
-                                },
-                                onLikeTapped: { post in
-                                    Task {
-                                        await postsViewModel.updateLike(post: post)
-                                        filteredPosts = postsViewModel.posts
-                                    }
-                                },
-                                onCommentTapped: { post in
-                                    selectedPost = post // Переход к комментариям поста
-                                },
-                                onBookmarkTapped: { post in
-                                    context.insert(SavedPost.from(post: post))
-                                    do {
-                                        try context.save()
-                                        print("Пост сохранён")
-                                    } catch {
-                                        print("Ошибка сохранения поста: \(error.localizedDescription)")
-                                    }
-                                }
                             )
                             .listRowSeparator(.hidden)
                         }
@@ -155,6 +163,14 @@ struct UserView: View {
                     )) {
                         if let post = selectedPost {
                             PostDetailView(post: post, authVewModel: authViewModel)
+                        }
+                    }
+                    .navigationDestination(isPresented: Binding(
+                        get: { editedPost != nil },
+                        set: { if !$0 { editedPost = nil } }
+                    )) {
+                        if let post = editedPost {
+                            AddPostView(postPreparation: post, attachmentType: post.attachment?.type, postsViewModel: postsViewModel)
                         }
                     }
                 } else {
@@ -180,8 +196,14 @@ struct UserView: View {
             .sheet(isPresented: $showAddPostView) {
                 AddPostView(postsViewModel: postsViewModel)
             }
-            .onAppear {
-                self.countPosts = posts.count
+            .onChange(of: selectedCoordinates, { oldValue, newValue in
+                isMapPresented = true
+            })
+            .onChange(of: postsViewModel.posts.count) { oldValue, newValue in
+                filterPosts()
+            }
+            .sheet(isPresented: $isMapPresented) {
+                MapView(coordinatePoint: selectedCoordinates, .constant(nil))
             }
         }
     }
@@ -190,7 +212,6 @@ struct UserView: View {
         Task {
             await usersViewModel.loadUser(userId: userId)
             await postsViewModel.loadPosts(authorId: userId)
-            self.posts = postsViewModel.posts
             self.filteredPosts = postsViewModel.posts
             self.countPosts = postsViewModel.posts.count
         }
@@ -198,42 +219,15 @@ struct UserView: View {
     
     private func filterPosts() {
         if searchText.isEmpty {
-            filteredPosts = posts
+            filteredPosts = postsViewModel.posts
         } else {
-            filteredPosts = posts.filter {
+            filteredPosts = postsViewModel.posts.filter {
                 $0.content.lowercased().contains(searchText.lowercased())
             }
         }
     }
     
-    // TODO Временное решение, для тестирования функционала, заменю на View
     private func showAddPostAlert() {
         showAddPostView = true
-//        let alertController = UIAlertController(
-//            title: "Новый пост",
-//            message: "Введите текст для нового поста",
-//            preferredStyle: .alert
-//        )
-//        
-//        alertController.addTextField { textField in
-//            textField.placeholder = "Текст поста"
-//        }
-//        
-//        let addAction = UIAlertAction(title: "Добавить", style: .default) { _ in
-//            guard let content = alertController.textFields?.first?.text, !content.isEmpty else {
-//                print("Пост пустой")
-//                return
-//            }
-//            addPost(content: content)
-//        }
-//        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel)
-//        
-//        alertController.addAction(addAction)
-//        alertController.addAction(cancelAction)
-//        
-//        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-//           let rootVC = windowScene.windows.first?.rootViewController {
-//            rootVC.present(alertController, animated: true)
-//        }
     }
 }

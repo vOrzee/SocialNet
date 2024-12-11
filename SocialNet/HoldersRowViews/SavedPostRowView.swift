@@ -39,19 +39,11 @@ struct SavedPostRowView: View {
             Text(post.content)
                 .font(.body)
             
-            if let attachment = post.attachment, attachment.type == "IMAGE" {
+            if let attachment = post.attachment {
                 HStack {
                     Spacer()
-                    AsyncImage(url: URL(string: attachment.url)) { image in
-                        image
-                            .resizable()
-                            .scaledToFit()
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 200)
-                    }
-                    .frame(height: 200)
+                    AttachmentView(attachment: attachment)
+                        .frame(maxHeight: 400)
                     Spacer()
                 }
             }

@@ -13,10 +13,23 @@ import MediaPlayer
 
 struct AddPostView: View {
     @Environment(\.dismiss) private var dismiss
+    var postPreparation: Post = Post(
+        id: 0,
+        authorId: 0,
+        author: "string",
+        authorAvatar: nil,
+        content: "",
+        published: Date(),
+        likedByMe: false,
+        likeOwnerIds: [],
+        attachment: nil,
+        coords: nil,
+        link: nil
+    )
     
     // Данные поста
     @State private var postText: String = ""
-    @State private var attachmentType: String? = nil
+    @State var attachmentType: String? = nil
     @State private var attachmentData: Data? = nil
     @State private var link: String = ""
     @State private var coordinates: Coordinates? = nil
@@ -44,7 +57,7 @@ struct AddPostView: View {
                         Text("Нет").tag(nil as String?)
                         Text("Картинка").tag("IMAGE")
                         Text("Видео").tag("VIDEO")
-                        Text("Аудио").tag("AUDIO")
+                        Text("Аудио").tag("AUDIO") //TODO
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .onChange(of: attachmentType) { _, newValue in
@@ -82,7 +95,7 @@ struct AddPostView: View {
                     }
                 }
             }
-            .navigationTitle("Добавить пост")
+            .navigationTitle(postPreparation.id == 0 ? "Добавить пост" : "Редактировать пост")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Отмена") {
@@ -103,9 +116,14 @@ struct AddPostView: View {
                 MapView($coordinates)
             }
             .sheet(isPresented: $showAudioPicker) {
-                AudioPickerView(audioData: $audioData)
+                AudioPickerView(audioData: $attachmentData)
             }
-
+            .onAppear {
+                postText = postPreparation.content
+                attachmentType = postPreparation.attachment?.type
+                coordinates = postPreparation.coords
+                link = postPreparation.link ?? ""
+            }
         }
     }
     
@@ -117,12 +135,14 @@ struct AddPostView: View {
                 if let attachmentType, let mediaUrl {
                     attachment = Attachment(url: mediaUrl, type: attachmentType)
                 }
+            } else {
+                attachment = postPreparation.attachment
             }
             let newPost = Post(
-                id: 0,
-                authorId: 0,
-                author: "string",
-                authorAvatar: nil,
+                id: postPreparation.id,
+                authorId: postPreparation.authorId,
+                author: postPreparation.author,
+                authorAvatar: postPreparation.authorAvatar,
                 content: postText,
                 published: Date(),
                 likedByMe: false,

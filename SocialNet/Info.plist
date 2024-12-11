@@ -25,20 +25,11 @@
     <string>Приложение использует доступ к вашему местоположению для добавления геометок к постам.</string>
     <key>NSAppleMusicUsageDescription</key>
     <string>Приложение требует доступ к медиатеке для добавления музыки к постам.</string>
-<key>UIFileSharingEnabled</key>
-<true/>
-<key>LSSupportsOpeningDocumentsInPlace</key>
-<true/>
-<key>NSFileProviderUsageDescription</key>
-<string>Приложение требует доступ к файлам для загрузки аудиофайлов.</string>
-<key>NSPhotoLibraryUsageDescription</key>
-<string>Для выбора медиафайлов приложение использует доступ к фотогалерее.</string>
-<key>NSFileProviderUsageDescription</key>
-<string>Приложение использует доступ к файловой системе для выбора аудиофайлов.</string>
-<key>UIFileSharingEnabled</key>
-<true/>
-<key>LSSupportsOpeningDocumentsInPlace</key>
-<true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>NSFileProviderUsageDescription</key>
+    <string>Приложение использует доступ к файловой системе для загрузки и выбора аудиофайлов.</string>
 </dict>
 </plist>
-

@@ -11,11 +11,13 @@ struct PostRowView: View {
     @Binding var post: Post
     @State private var isViewActive: Bool = true
     @ObservedObject var authViewModel: AuthViewModel
+    var onEditTapped: ((Post) -> Void)? = nil
     var onTrashTapped: ((Post) -> Void)? = nil
     var onLikeTapped: ((Post) -> Void)? = nil
     var onCommentTapped: ((Post) -> Void)? = nil
     var onCoordsTapped: ((Coordinates) -> Void)? = nil
     var onBookmarkTapped: ((Post) -> Void)? = nil
+    @State private var isMenuTapped: Bool = false
 
     var body: some View {
         if isViewActive {
@@ -42,9 +44,11 @@ struct PostRowView: View {
                     
                     Spacer()
                     if(authViewModel.currentUserId == post.authorId) {
-                        Image(systemName: "trash")
+                        Image(systemName: "ellipsis")
+                            .padding(8)
+                            .rotationEffect(Angle(degrees: 90))
                             .onTapGesture {
-                                onTrashTapped?(post)
+                                isMenuTapped = true
                             }
                     }
                     
@@ -63,12 +67,18 @@ struct PostRowView: View {
                 }
                 
                 if let link = post.link, let url = URL(string: link) {
-                    Link(link, destination: url)
+                    Text(link)
+                        .foregroundColor(.blue)
+                        .underline()
+                        .onTapGesture {
+                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        }
                 }
                 
                 HStack {
                     HStack {
                         Image(systemName: post.likedByMe ? "heart.fill" : "heart")
+                            .padding(8)
                         Text("\(post.likeOwnerIds.count)")
                     }
                     .onTapGesture {
@@ -77,6 +87,7 @@ struct PostRowView: View {
                     
                     HStack {
                         Image(systemName: "bubble.left")
+                            .padding(8)
                         Text("\(post.comments?.count ?? 0)")
                     }
                     .onTapGesture {
@@ -85,6 +96,7 @@ struct PostRowView: View {
                     
                     if let coords = post.coords {
                         Image(systemName: "location.fill")
+                            .padding(8)
                             .foregroundColor(.orange)
                             .onTapGesture {
                                 onCoordsTapped?(coords)
@@ -94,6 +106,7 @@ struct PostRowView: View {
                     Spacer()
                     
                     Image(systemName: "bookmark")
+                        .padding(8)
                         .foregroundColor(.gray)
                         .onTapGesture {
                             onBookmarkTapped?(post)
@@ -108,6 +121,21 @@ struct PostRowView: View {
             .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
             .contentShape(Rectangle())
+            .actionSheet(isPresented: $isMenuTapped) {
+                ActionSheet(
+                    title: Text("Действия"),
+                    message: nil,
+                    buttons: [
+                        .default(Text("Редактировать")) {
+                            onEditTapped?(post)
+                        },
+                        .destructive(Text("Удалить")) {
+                            onTrashTapped?(post)
+                        },
+                        .cancel()
+                    ]
+                )
+            }
         }
     }
 }
