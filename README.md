@@ -4,66 +4,21 @@
 
 ## Скриншоты
 
-### Главный экран
-<img src="https://github.com/user-attachments/assets/a4d4596a-3fad-4141-a9e6-e4b1748b02f3" alt="Главный экран" style="max-height: 200px; width: auto;">
-
----
-
-### Профиль пользователя
-<img src="https://github.com/user-attachments/assets/89d4a6d7-73c6-4aa7-a22e-97d5e24e9060" alt="Собственный профиль пользователя" style="max-height: 200px; width: auto;">
-<img src="https://github.com/user-attachments/assets/91d88419-022e-4ad0-82a7-07aa86d71073" alt="Профиль другого пользователя" style="max-height: 200px; width: auto;">
-
----
-
-### Экран добавления поста
-<img src="https://github.com/user-attachments/assets/2d26203a-9e70-4e9f-bc44-0a2b4ce57a06" alt="Экран добавления поста" style="max-height: 200px; width: auto;">
-
----
-
-### Экран действий с постом
-<img src="https://github.com/user-attachments/assets/1f7bf147-43d8-4e38-a3f6-124919ac34e4" alt="Экран действий с постом" style="max-height: 200px; width: auto;">
-
----
-
-### Экран с меткой на карте
-<img src="https://github.com/user-attachments/assets/a5b8c1fd-6127-4ea3-850b-3b88cc3917ee" alt="Экран с меткой на карте" style="max-height: 200px; width: auto;">
-
----
-
-### Экран добавления метки на карте
-<img src="https://github.com/user-attachments/assets/74360429-95f9-47d7-ab25-96a3a2b34821" alt="Экран добавления метки на карте" style="max-height: 200px; width: auto;">
-
----
-
-### Комментарии
-<img src="https://github.com/user-attachments/assets/b174bef1-806f-453f-9dc4-cf287b3b8982" alt="Комментарии" style="max-height: 200px; width: auto;">
-
----
-
-### Сохранённые посты
-<img src="https://github.com/user-attachments/assets/fb330b04-f6b8-40f0-ac1b-33a7c4c0da86" alt="Сохранённые посты" style="max-height: 200px; width: auto;">
-
----
-
-### Вход с использованием Face ID
-<img src="https://github.com/user-attachments/assets/8d4fafee-6ddb-4927-a18f-b4bb901adf12" alt="Вход Face ID" style="max-height: 200px; width: auto;">
-
----
-
-### Экран настроек
-<img src="https://github.com/user-attachments/assets/4120aace-157d-4186-bd07-6f7f621c54ed" alt="Экран настроек" style="max-height: 200px; width: auto;">
-
----
-
-### Запрос API-Key
-<img src="https://github.com/user-attachments/assets/e74a032a-7938-4984-af70-690ca3dacf56" alt="API-Key" style="max-height: 200px; width: auto;">
-
----
-
-### Экран загрузки
-<img src="https://github.com/user-attachments/assets/d0af4893-adc1-46e3-8c62-e670e6218cb5" alt="Экран загрузки" style="max-height: 200px; width: auto;">
-
----
+<div style="display: flex; overflow-x: scroll; gap: 10px;">
+    <img src="https://github.com/user-attachments/assets/a4d4596a-3fad-4141-a9e6-e4b1748b02f3" alt="Главный экран" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/89d4a6d7-73c6-4aa7-a22e-97d5e24e9060" alt="Собственный профиль пользователя" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/91d88419-022e-4ad0-82a7-07aa86d71073" alt="Профиль другого пользователя" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/2d26203a-9e70-4e9f-bc44-0a2b4ce57a06" alt="Экран добавления поста" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/1f7bf147-43d8-4e38-a3f6-124919ac34e4" alt="Экран действий с постом" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/a5b8c1fd-6127-4ea3-850b-3b88cc3917ee" alt="Экран с меткой на карте" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/74360429-95f9-47d7-ab25-96a3a2b34821" alt="Экран добавления метки на карте" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/b174bef1-806f-453f-9dc4-cf287b3b8982" alt="Комментарии" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/fb330b04-f6b8-40f0-ac1b-33a7c4c0da86" alt="Сохранённые посты" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/8d4fafee-6ddb-4927-a18f-b4bb901adf12" alt="Вход Face ID" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/4120aace-157d-4186-bd07-6f7f621c54ed" alt="Экран настроек" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/e74a032a-7938-4984-af70-690ca3dacf56" alt="API-Key" style="height: 500px; width: auto;">
+    <img src="https://github.com/user-attachments/assets/d0af4893-adc1-46e3-8c62-e670e6218cb5" alt="Экран загрузки" style="height: 500px; width: auto;">
+</div>
 
 ## Основные функции
 1. **Публикация постов** — добавляйте и редактируйте свои посты.
